@@ -5,6 +5,8 @@ const router = express.Router();
 
 /*
  Routes
+ - defines the URL path and HTTP method (e.g., GET /users, POST /login).
+ 
  get method 
   - app.get(path, callback)
   - The route path (a string like "/api/notes")

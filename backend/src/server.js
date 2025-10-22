@@ -1,6 +1,7 @@
 import express from "express"; // requires   "type": "module", inside package.json
 import dotenv from "dotenv";
 import cors from 'cors';
+import path from "path";
 
 import notesRoute from "./routes/notesRoute.js";
 import { connectDB } from "./config/db.js";
@@ -54,18 +55,26 @@ import ratelLimiter from "./middleware/rateLimiter.js";
   - When a website tries to get data from another website like our frontend calling an api
     on a different domain the browser might block it for security reasons.
 
+  const __dirname = path.resolve();
+  - `path.resolve()` gives the directory from which Node was started
+  - we use it to help Express find and serve our frontends production build
+
     
 */
-
-// import express
-const app = express(); 
-
 // Environment variables
 dotenv.config(); // Always call BEFORE connecting
 // console.log(process.env.MONGO_URI);
 
-// Cors middleware
-app.use(cors({ origin: "http://localhost:5173" }));
+// import express
+const app = express(); 
+const __dirname = path.resolve();
+
+// Cors middleware (only needed when frontend and backend are served on different domains)
+if (process.env.NODE_ENV !== "production") {
+  // Checks if app is not running in production (i.e., running locally or in development)
+  // Will only run during development
+  app.use(cors({ origin: "http://localhost:5173" }));
+}
 // Middleware will parse JSON bodies:  req.body
 app.use(express.json());
 // Rate limiter middleware
@@ -73,6 +82,16 @@ app.use(ratelLimiter);
 
 // Routes
 app.use("/api/notes", notesRoute); // Assigning all note-related API endpoints to the /api/notes route
+
+if (process.env.NODE_ENV === "production") {
+  // Serve frontend files only in production
+  app.use(express.static(path.join(__dirname, "../frontend/dist")));
+
+  // Any unknown route ("*") will return the frontend's index.html
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend", "dist", "index.html"));
+  });
+}
 
 // Connect to mongo databa
 connectDB().then(() => {
