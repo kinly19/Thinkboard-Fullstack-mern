@@ -91,7 +91,7 @@ export const updateNote = async (req, res) => {
 
     // early return/throw error
     if (!updatedNote) return res.status(404).json({message: "Note not found"});
-    res.status(200).json(updateNote);
+    res.status(200).json(updatedNote);
 
   } catch (error) {
     console.log("Error in updateNote controller", error);
